@@ -32,6 +32,7 @@
                         </MenuItem>
                   </items>
                 </Menu>
+                <Menu mnemonicParsing="false" text="Отчёты" />
                 <Menu mnemonicParsing="false" text="Настройки" />
                 <Menu mnemonicParsing="false" text="Справка">
                   <items>
@@ -46,9 +47,9 @@
             <ToolBar focusTraversable="false" prefHeight="35.0">
               <items>
                 <ToggleButton fx:id="btnToRegister" focusTraversable="false" mnemonicParsing="false" text="На регистрацию" />
+                <ToggleButton fx:id="btnAtManager" focusTraversable="false" mnemonicParsing="false" text="У руководства" />
                 <ToggleButton fx:id="btnInAction" focusTraversable="false" mnemonicParsing="false" text="На исполнении" />
                 <ToggleButton fx:id="btnInControl" focusTraversable="false" mnemonicParsing="false" text="На контроле" />
-                <ToggleButton fx:id="btnAtManager" focusTraversable="false" mnemonicParsing="false" text="У руководства" />
                 <ToggleButton fx:id="btnInReview" focusTraversable="false" mnemonicParsing="false" text="На рассмотрении" />
                 <ToggleButton fx:id="btnWriteOff" focusTraversable="false" mnemonicParsing="false" text="В дело" />
                 <Separator orientation="VERTICAL" />

@@ -1,17 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package sedo.db;
 
+import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import sedo.Document.Type;
-import sedo.Document;
-import sedo.File;
+import sedo.db.entity.Document;
+import sedo.db.entity.Document.Type;
+import sedo.db.entity.lists.Nomenclature;
+import sedo.db.entity.lists.Template;
 
 /**
  *
@@ -21,17 +20,25 @@ public class testDB {
     private final static Collection<Document> DOCS = new ArrayList<>();
     
     static {
-      DOCS.add(new Document(Type.IN, false, "01-15/24", new GregorianCalendar(2019, 5, 14).getTime(), "Тестовый документ", "Иванов И.А.", "07-15-456/2", new GregorianCalendar(2019, 5, 12).getTime(), new File("doc.doc", 65535)));
-      DOCS.add(new Document(Type.IN, false, "01-02/4", new GregorianCalendar(2019, 5, 14).getTime(), "Документ №2", "ООО \"Витязь\" - Галкин А.П.", "б/н", new GregorianCalendar(2019, 5, 10).getTime()));
-      DOCS.add(new Document(Type.OUT, true, "01-07-2", new GregorianCalendar(2016, 8, 2).getTime(), "Сообщаю Вам сведения о наличии задолженнности", "Брыков С.А.", null, null, new File("Сведения.pdf",2564654)));
-      DOCS.add(new Document(Type.OUT, false, "0107/2", new GregorianCalendar(2019, 8, 14).getTime(), "Предоставьте данные", "Rappa X", null, null));
+      ArrayList<Entry<Class, Object>> params = new ArrayList<>();
+      params.add(new AbstractMap.SimpleEntry<>(Integer.class, 4));
+      params.add(new AbstractMap.SimpleEntry<>(String.class, "-"));
+      params.add(new AbstractMap.SimpleEntry<>(Integer.class, 10));
+      params.add(new AbstractMap.SimpleEntry<>(String.class, "/"));
+      params.add(new AbstractMap.SimpleEntry<>(Template.class, new Template()));
+      Nomenclature n1 = new Nomenclature(params, "Переписка с бухгалтерией");
       
-      DOCS.add(new Document(Type.IN, false, null, null, "Документ №2", "ООО \"Витязь\" - Галкин А.П.", "б/н", new GregorianCalendar(2019, 5, 10).getTime()));
-      DOCS.add(new Document(Type.IN, true, "01-02/4", new GregorianCalendar(2019, 5, 14).getTime(), "Документ №2", "ООО \"Витязь\" - Галкин А.П.", "б/н", new GregorianCalendar(2019, 5, 10).getTime()));
+      
+      DOCS.add(new Document(Type.IN, null, null, "17-102/14р", new GregorianCalendar(2019, 5, 14).getTime(), "Тестовый документ", null));
+      DOCS.add(new Document(Type.IN, null, null, "17/14р", new GregorianCalendar(2019, 10, 4).getTime(), "Приходите в гости к нам", new GregorianCalendar(2019, 10, 29).getTime()));
+      
+      DOCS.add(new Document(Type.IN, null, null, null, new GregorianCalendar(2019, 10, 4).getTime(), "Сообщение электронной почты", null));
+      
+      DOCS.add(new Document(Type.OUT, n1, new GregorianCalendar(2019, 10, 8).getTime(), null, null, "О возможности перечисления биткоинов", null));
     }
     
     public static Collection<Document> getNotRegistered() {
-        return DOCS.stream().filter(D -> null == D.getRegNumber()).collect(Collectors.toList());
+        return DOCS.stream().filter(D -> null == D.getReg_number()).collect(Collectors.toList());
     }
     
     public static Collection<Document> getIncoming() {
@@ -43,10 +50,14 @@ public class testDB {
     }
     
     public static Collection<Document> getControl() {
-        return DOCS.stream().filter(D -> D.isControl()).collect(Collectors.toList());
+        return DOCS.stream().filter(D -> null != D.getControl().getKey() && null == D.getControl().getValue() && null != D.getReg_number()).collect(Collectors.toList());
     }
     
     public static Collection<Document> getRegistered() {
-        return DOCS.stream().filter(D -> null != D.getRegNumber()).collect(Collectors.toList());
+        return DOCS.stream().filter(D -> null != D.getReg_number()).collect(Collectors.toList());
+    }
+    
+    public static Collection<Document> getInAction() {
+        return DOCS;/* Все документы (DEBUG) */
     }
 }
