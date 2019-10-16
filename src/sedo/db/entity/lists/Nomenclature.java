@@ -10,12 +10,19 @@ import java.util.NoSuchElementException;
  * @name Номенклатура
  */
 public class Nomenclature {
-  ArrayList<Entry<Class, Object>> params;
+  private ArrayList<Entry<Class, Object>> params;
   private String name;
   
   public Nomenclature(ArrayList<Entry<Class, Object>> params, String name) {
     this.params = params;
     this.name = name;
+  }
+  
+  public Nomenclature copy() {
+    return copy(true);
+  }
+  public Nomenclature copy(Boolean withName) {
+    return new Nomenclature(this.params, withName ? this.name : "");
   }
   
   public String getNext() {

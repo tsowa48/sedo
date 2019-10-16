@@ -1,5 +1,7 @@
 package sedo.fxml;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -9,7 +11,6 @@ import javafx.scene.image.ImageView;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellDataFeatures;
@@ -32,8 +33,6 @@ public class MainController implements Initializable {
     private ResourceBundle _rb;
     
     @FXML
-    private AnchorPane apParent;
-    @FXML
     TableView tvTable;
     @FXML
     private ToggleButton btnToRegister;
@@ -48,7 +47,15 @@ public class MainController implements Initializable {
     @FXML
     private ToggleButton btnWriteOff;
     @FXML
+    private Button btnPrint;
+    @FXML
+    private MenuItem mnuNewOutcoming;
+    @FXML
+    private MenuItem mnuNewIncoming;
+    @FXML
     private MenuItem mnuNewDocument;
+    @FXML
+    private MenuItem mnuFindDocument;
     
     private ProgressIndicator piWait;  
     private Label lblEmptyList;
@@ -101,11 +108,11 @@ public class MainController implements Initializable {
             return new SimpleObjectProperty(iv);
         });
         colRegNum.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
-          Nomenclature n = d.getValue().getReg_number();
+          Nomenclature n = d.getValue().getRegNumber();
           return new SimpleStringProperty(null == n ? "" : n.toString());
         });
         colRegDate.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
-          Date regDate = d.getValue().getReg_date();
+          Instant regDate = d.getValue().getRegDate();
           String ret = null != regDate ? (new SimpleDateFormat(_rb.getString("date_format"))).format(regDate) : "";
           return new SimpleStringProperty(ret);
         });
@@ -113,7 +120,7 @@ public class MainController implements Initializable {
         colAddr.setCellValueFactory(new PropertyValueFactory<>("correspondent"));
         colOutNum.setCellValueFactory(new PropertyValueFactory<>("out_number"));
         colOutDate.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
-          Date outDate = d.getValue().getOut_date();
+          Instant outDate = d.getValue().getOutDate();
           String ret = null != outDate ? (new SimpleDateFormat(_rb.getString("date_format"))).format(outDate) : "";
           return new SimpleStringProperty(ret);
         });
@@ -128,7 +135,7 @@ public class MainController implements Initializable {
         docList = FXCollections.observableArrayList();
         tgToolBar = new ToggleGroup();
         piWait = new ProgressIndicator();
-        lblEmptyList = new Label("Список пуст");
+        lblEmptyList = new Label(_rb.getString("list_is_empty"));
         lblEmpty = new Label("");
         piWait.setMaxSize(52, 53);
         piWait.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
@@ -161,6 +168,19 @@ public class MainController implements Initializable {
         });
         btnWriteOff.setOnAction(event -> {
             reloadTableDocs(ExtendedState.WORK_OFF);
+        });
+        
+        mnuNewDocument.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/new.png"))));
+        mnuNewOutcoming.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/out.png"))));
+        mnuNewIncoming.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/in.png"))));
+        mnuFindDocument.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/find2.png"))));
+        btnPrint.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/print.png"))));
+        
+        mnuNewOutcoming.setOnAction(event -> {
+          registerNewDoc(Document.Type.OUT);
+        });
+        mnuNewIncoming.setOnAction(event -> {
+          registerNewDoc(Document.Type.IN);
         });
         
         reloadTableDocs(ExtendedState.NOT_REGISTERED);
@@ -206,8 +226,11 @@ public class MainController implements Initializable {
       if (2 == event.getClickCount()) {
         Document doc = (Document)tvTable.getSelectionModel().getSelectedItem();
         if(null != doc) {
-          AnchorPane root = FXMLLoader.load(getClass().getResource("/sedo/fxml/Document.fxml"));
-          root.setUserData(doc);
+          FXMLLoader loader = new FXMLLoader(getClass().getResource("/sedo/fxml/Document.fxml"));
+          loader.setController(new DocumentController());
+          DocumentController dc = loader.getController();
+          dc.doc = doc;
+          AnchorPane root = loader.load();
           Scene scene = new Scene(root);
           Stage stage = new Stage();
           stage.setScene(scene);
@@ -216,13 +239,35 @@ public class MainController implements Initializable {
           stage.initModality(Modality.APPLICATION_MODAL);
           //stage.setUserData(doc);
           stage.getIcons().add(new Image(getClass().getResourceAsStream("/sedo/res/" + (Document.Type.IN == doc.getType() ? "in" : "out") + ".png")));
-          if(Document.Status.REGISTERED == doc.getStatus() || null != doc.getReg_number())
-            stage.setTitle("№" + doc.getReg_number() + " от " + (new SimpleDateFormat(_rb.getString("date_format"))).format(doc.getReg_date()) + " " + doc.getReg_number().getName());
+          if(Document.Status.REGISTERED == doc.getStatus() || null != doc.getRegNumber())
+            stage.setTitle("№" + doc.getRegNumber() + " от " + (new SimpleDateFormat(_rb.getString("date_format"))).format(doc.getRegDate()) + " " + doc.getRegNumber().getName());
           else
-            stage.setTitle("б/н");
+            stage.setTitle(_rb.getString("unregistered_document"));
           stage.showAndWait();
           tvTable.getSelectionModel().clearSelection();
         }
+      }
+    }
+    
+    private void registerNewDoc(Document.Type type) {
+      try {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/sedo/fxml/Document.fxml"));
+        loader.setController(new DocumentController());
+        DocumentController dc = loader.getController();
+        dc.doc = new Document();
+        dc.doc.setType(type);
+        AnchorPane root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = new Stage();
+        stage.setScene(scene);
+        stage.initOwner(tvTable.getScene().getWindow());
+        stage.setResizable(false);
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("/sedo/res/man.png")));
+        stage.setTitle(_rb.getString("new_document"));
+        stage.showAndWait();
+      } catch(IOException iex) {
+        
       }
     }
 }

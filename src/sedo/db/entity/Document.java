@@ -1,10 +1,8 @@
 package sedo.db.entity;
 
 import java.io.File;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.time.Instant;
 import java.util.Map.Entry;
 import sedo.db.entity.lists.ICorrespondent;
 import sedo.db.entity.lists.Nomenclature;
@@ -17,30 +15,54 @@ import sedo.db.entity.lists.User;
  */
 public class Document {
 
-  public Document(Type type, Nomenclature reg_number, Date reg_date, String out_number, Date out_date, String content, Date control, File... file) {
+  /**
+   * By default document type is Outcoming ({@see Document.Type}),
+   * status - unregistered ({@see Document.Status})
+   * @param content - document content
+   * @param control - control date of document
+   * @param access - {@see Document.Accees}
+   * @param file - list of files to be attached
+   */
+  public Document(String content, Instant control, Access access, File... file) {
     this.file = new ArrayList<>();
-    this.type = type;
-    this.reg_number = reg_number;
-    this.reg_date = reg_date;
-    this.out_number = out_number;
-    this.out_date = out_date;
+    this.status = Status.UN_REGISTERED;
+    this.type = Type.OUT;
+    this.access = access;
     this.content = content;
     this.control = new AbstractMap.SimpleEntry<>(control, null);
-    //this.file.addAll(file);/* TODO */
+    this.file.addAll(Arrays.asList(file));
+  }
+  
+  public Document(String content, Instant control, File... file) {
+    this(content, control, Access.ALL, file);
+  }
+  
+  public Document(String content, File... file) {
+    this(content, null, Access.ALL, file);
+  }
+  
+  public Document(String content, Access access, File... file) {
+    this(content, null, access, file);
+  }
+  
+  public Document() {
+    this.file = new ArrayList<>();
+    this.control = new AbstractMap.SimpleEntry<>(null, null);
+    this.status = Status.UN_REGISTERED;
   }
   
   private Long id;
   private Type type;/* Вх. или Исх. */
   private Nomenclature reg_number; /* Номер регистрации */
-  private Date reg_date; /* Дата регистрации */
+  private Instant reg_date; /* Дата регистрации */
   private String out_number; /* Для входящих - номер документа */
-  private Date out_date; /* Для входящих - дата документа */
-  //private Access access;/* Тип доступа (ДСП, общий) */
+  private Instant out_date; /* Для входящих - дата документа */
+  private Access access;/* Тип доступа (ДСП, общий) */
   private String content;/* Содержимое */
   //private Integer pages;/* Количество страниц */
-  //private String note; /* Примечание */
+  private String note; /* Примечание */
   //private List<Rubric> rubric; /* Рубрики */
-  private Entry<Date, Date> control; /* На контроле */
+  private Entry<Instant, Instant> control; /* На контроле */
   private Delivery delivered_by; /* Вид доставки (почта, e-mail и т.п.) */
   private Status status; /* Статус (у руководства, на исполнении и т.д.)*/
   
@@ -54,14 +76,38 @@ public class Document {
   private ICorrespondent correspondent; /* Корреспондент */
   
   public enum Access {
-    ALL, /* Общий */
-    FBU /* Для служебного пользования (ДСП) */
+    ALL("Общий"),
+    SECRET("Секретно"),
+    CONFIDENCIAL("Конфиденциально"),
+    FBU("ДСП"), /* Для служебного пользования */
+    COMMERCIAL("Коммерческая тайна");
+    
+    private final String text;
+    private Access(String text) {
+      this.text = text;
+    }
+    @Override
+    public String toString() {
+      return this.text;
+    }
   }
   
   public enum Delivery {
-    MAIL,
-    EMAIL
-    /* TODO: add new */
+    COURIER("Нарочно"),
+    MAIL("Почта"),
+    EMAIL("Эл.почта"),
+    FAX("Факс"),
+    TELEGRAMM("Телеграмма"),
+    DELO("ПИ Дело");
+
+    private final String text;
+    private Delivery(String text) {
+      this.text = text;
+    }
+    @Override
+    public String toString() {
+      return this.text;
+    }
   }
   
   public enum Status {
@@ -76,8 +122,17 @@ public class Document {
   }
   
   public enum Type {
-    IN,
-    OUT
+    IN("Входящий"),
+    OUT("Исходящий");
+    
+    private final String text;
+    private Type(String text) {
+      this.text = text;
+    }
+    @Override
+    public String toString() {
+      return this.text;
+    }
   }
 
   /**
@@ -132,66 +187,85 @@ public class Document {
   /**
    * @return the control
    */
-  public Entry<Date, Date> getControl() {
+  public Entry<Instant, Instant> getControl() {
     return control;
   }
 
   /**
+   * @param control the control to unset
+   */
+  public void unsetControl(Instant control) {
+    this.control.setValue(control);
+  }
+  
+  /**
    * @param control the control to set
    */
-  public void setControl(Date control) {
-    this.control.setValue(control);
+  public void setControl(Instant control) {
+    this.control = new AbstractMap.SimpleEntry<>(control, null);
   }
 
   /**
    * @return the reg_number
    */
-  public Nomenclature getReg_number() {
+  public Nomenclature getRegNumber() {
     return reg_number;
   }
 
   /**
-   * @param reg_number the reg_number to set
+   * @param number the reg_number to set
    */
-  public void setReg_number(Nomenclature reg_number) {
-    this.reg_number = reg_number;
+  public void setRegNumber(Nomenclature number) {
+    this.reg_number = number;
   }
 
   /**
    * @return the reg_date
    */
-  public Date getReg_date() {
+  public Instant getRegDate() {
     return reg_date;
   }
 
   /**
-   * @param reg_date the reg_date to set
+   * @param date the reg_date to set
    */
-  public void setReg_date(Date reg_date) {
-    this.reg_date = reg_date;
+  public void setRegDate(Instant date) {
+    this.reg_date = date;
   }
 
   /**
    * @return the out_number
    */
-  public String getOut_number() {
+  public String getOutNumber() {
     return out_number;
   }
 
   /**
    * @return the out_date
    */
-  public Date getOut_date() {
+  public Instant getOutDate() {
     return out_date;
   }
 
   /**
-   * @return the file
+   * @param index is index in file array
+   * @return file by index
    */
   public File getFile(Integer index) {
     return file.get(index);
   }
   
+  /**
+   * @param name is name of searched file
+   * @return file by name if founded else - null
+   */
+  public File getFile(String name) {
+    return file.parallelStream().filter(F -> F.getName().equals(name)).findFirst().orElse(null);
+  }
+  
+  /**
+   * @return all files as list
+   */
   public List<File> getFile() {
     return file;
   }
@@ -201,5 +275,61 @@ public class Document {
    */
   public void setFile(File file) {
     this.file.add(file);
+  }
+
+  /**
+   * @return the access
+   */
+  public Access getAccess() {
+    return access;
+  }
+
+  /**
+   * @param access the access to set
+   */
+  public void setAccess(Access access) {
+    this.access = access;
+  }
+
+  /**
+   * @return the delivered_by
+   */
+  public Delivery getDelivered_by() {
+    return delivered_by;
+  }
+
+  /**
+   * @param delivered_by the delivered_by to set
+   */
+  public void setDelivered_by(Delivery delivered_by) {
+    this.delivered_by = delivered_by;
+  }
+
+  /**
+   * @return the correspondent
+   */
+  public ICorrespondent getCorrespondent() {
+    return correspondent;
+  }
+
+  /**
+   * @param correspondent the correspondent to set
+   */
+  public void setCorrespondent(ICorrespondent correspondent) {
+    this.correspondent = correspondent;
+  }
+
+  /**
+   * @return the note
+   */
+  public String getNote() {
+    return note;
+  }
+
+  /**
+   * @param note the note to set
+   */
+  public void setNote(String note) {
+    this.note = note;
   }
 }
