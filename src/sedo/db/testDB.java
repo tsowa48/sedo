@@ -1,10 +1,8 @@
 package sedo.db;
 
 import java.io.File;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.GregorianCalendar;
+import java.time.Instant;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
@@ -12,7 +10,6 @@ import javafx.collections.ObservableList;
 import sedo.db.entity.Document;
 import sedo.db.entity.Document.Type;
 import sedo.db.entity.lists.Nomenclature;
-import sedo.db.entity.lists.Template;
 
 /**
  *
@@ -23,20 +20,20 @@ public class testDB {
     private final static ObservableList<Nomenclature> NOMS = FXCollections.observableArrayList();
     
     static {
-      ArrayList<Entry<Class, Object>> params = new ArrayList<>();
-      params.add(new AbstractMap.SimpleEntry<>(String.class, "04-10/"));
-      params.add(new AbstractMap.SimpleEntry<>(Template.class, new Template()));
-      Nomenclature n1 = new Nomenclature(params, "Переписка с бухгалтерией");
-
-      params = new ArrayList<>();
-      params.add(new AbstractMap.SimpleEntry<>(String.class, "01-01/"));
-      params.add(new AbstractMap.SimpleEntry<>(Template.class, new Template()));
-      Nomenclature n2 = new Nomenclature(params, "Переписка с другими");
+      NOMS.add(new Nomenclature("Распоряжения", "01-01/{0}", Document.Type.OUT));
+      NOMS.add(new Nomenclature("Переписка с организациями", "01-02/{0}", Document.Type.OUT));
+      NOMS.add(new Nomenclature("Бухгалтерская отчетность", "01-03/{0}", Document.Type.OUT));
+      NOMS.add(new Nomenclature("Жалобы и заявления", "01-04/{0}", Document.Type.IN));
+      NOMS.add(new Nomenclature("Переписка с организациями", "01-02/{0}", Document.Type.IN));
+      NOMS.add(new Nomenclature("Запросы из ведомств", "01-05/{0}", Document.Type.IN));
       
-      NOMS.add(n1);
-      NOMS.add(n2);
-      
+      Document d1 = new Document("Основной текст первого входящего документа");
+      d1.setType(Type.IN);
+      d1.setOutDate(Instant.now());
+      d1.setOutNumber("ИА-3317");
+      DOCS.add(d1);
       DOCS.add(new Document("Проверочный документ", new File("file00_1.pdf")));
+      DOCS.add(new Document("X2 документ"));
     }
     
     public static Collection<Document> getNotRegistered() {
@@ -63,7 +60,7 @@ public class testDB {
         return DOCS;/* Все документы (DEBUG) */
     }
     
-    public static ObservableList getNomenclatures() {
-      return NOMS;
+    public static ObservableList getNomenclatures(Document.Type type) {
+      return FXCollections.observableList(NOMS.stream().filter(N -> N.getType() == type).collect(Collectors.toList()));
     }
 }

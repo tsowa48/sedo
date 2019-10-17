@@ -5,7 +5,6 @@ import java.util.*;
 import java.time.Instant;
 import java.util.Map.Entry;
 import sedo.db.entity.lists.ICorrespondent;
-import sedo.db.entity.lists.Nomenclature;
 import sedo.db.entity.lists.Rubric;
 import sedo.db.entity.lists.User;
 
@@ -53,7 +52,7 @@ public class Document {
   
   private Long id;
   private Type type;/* Вх. или Исх. */
-  private Nomenclature reg_number; /* Номер регистрации */
+  private String reg_number; /* Номер регистрации */
   private Instant reg_date; /* Дата регистрации */
   private String out_number; /* Для входящих - номер документа */
   private Instant out_date; /* Для входящих - дата документа */
@@ -75,6 +74,38 @@ public class Document {
   private List<File> file; /* Список файлов */
   private ICorrespondent correspondent; /* Корреспондент */
   
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("Document [");
+    sb.append("id=");
+    sb.append(this.id);
+    sb.append(", type=");
+    sb.append(this.type);
+    sb.append(", reg_number=");
+    sb.append(this.reg_number);
+    sb.append(", reg_date=");
+    sb.append(this.reg_date);
+    sb.append(", out_number=");
+    sb.append(this.out_number);
+    sb.append(", out_date=");
+    sb.append(this.out_date);
+    sb.append(", access=");
+    sb.append(this.access);
+    sb.append(", content='");
+    sb.append(this.content);
+    sb.append("', note='");
+    sb.append(this.note);
+    sb.append("', control=");
+    sb.append(this.control);
+    sb.append(", delivered_by=");
+    sb.append(this.delivered_by);
+    sb.append(", status=");
+    sb.append(this.status);
+    
+    sb.append(", ...]");
+    return sb.toString();
+  }
   public enum Access {
     ALL("Общий"),
     SECRET("Секретно"),
@@ -208,14 +239,14 @@ public class Document {
   /**
    * @return the reg_number
    */
-  public Nomenclature getRegNumber() {
+  public String getRegNumber() {
     return reg_number;
   }
 
   /**
    * @param number the reg_number to set
    */
-  public void setRegNumber(Nomenclature number) {
+  public void setRegNumber(String number) {
     this.reg_number = number;
   }
 
@@ -331,5 +362,19 @@ public class Document {
    */
   public void setNote(String note) {
     this.note = note;
+  }
+
+  /**
+   * @param out_date the out_date to set
+   */
+  public void setOutDate(Instant out_date) {
+    this.out_date = out_date;
+  }
+
+  /**
+   * @param out_number the out_number to set
+   */
+  public void setOutNumber(String out_number) {
+    this.out_number = out_number;
   }
 }

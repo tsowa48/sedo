@@ -3,7 +3,9 @@ package sedo.fxml;
 import java.io.IOException;
 import java.time.Instant;
 import java.net.URL;
-import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.*;
 import javafx.beans.property.*;
 import javafx.collections.*;
@@ -63,6 +65,7 @@ public class MainController implements Initializable {
     private ToggleGroup tgToolBar;
     
     private ObservableList<Document> docList;
+    private ExtendedState extState;
     
     @FXML
     TableColumn<Document, ImageView> colType;
@@ -108,20 +111,21 @@ public class MainController implements Initializable {
             return new SimpleObjectProperty(iv);
         });
         colRegNum.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
-          Nomenclature n = d.getValue().getRegNumber();
-          return new SimpleStringProperty(null == n ? "" : n.toString());
+          return new SimpleStringProperty(d.getValue().getRegNumber());
         });
         colRegDate.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
           Instant regDate = d.getValue().getRegDate();
-          String ret = null != regDate ? (new SimpleDateFormat(_rb.getString("date_format"))).format(regDate) : "";
+          String ret = null != regDate ? DateTimeFormatter.ofPattern(_rb.getString("date_format")).withZone(ZoneId.systemDefault()).format(regDate) : "";
           return new SimpleStringProperty(ret);
         });
         colContent.setCellValueFactory(new PropertyValueFactory<>("content"));
         colAddr.setCellValueFactory(new PropertyValueFactory<>("correspondent"));
-        colOutNum.setCellValueFactory(new PropertyValueFactory<>("out_number"));
+        colOutNum.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
+          return new SimpleStringProperty(d.getValue().getOutNumber());
+        });
         colOutDate.setCellValueFactory((CellDataFeatures<Document, String> d) -> {
           Instant outDate = d.getValue().getOutDate();
-          String ret = null != outDate ? (new SimpleDateFormat(_rb.getString("date_format"))).format(outDate) : "";
+          String ret = null != outDate ? DateTimeFormatter.ofPattern(_rb.getString("date_format")).withZone(ZoneId.systemDefault()).format(outDate) : "";
           return new SimpleStringProperty(ret);
         });
         colFiles.setCellValueFactory((CellDataFeatures<Document, Integer> d) -> {
@@ -139,6 +143,7 @@ public class MainController implements Initializable {
         lblEmpty = new Label("");
         piWait.setMaxSize(52, 53);
         piWait.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        extState = ExtendedState.NOT_REGISTERED;
         
         setCellFactories();
 
@@ -152,22 +157,28 @@ public class MainController implements Initializable {
         btnToRegister.setSelected(true);
         
         btnToRegister.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.NOT_REGISTERED);
+          extState = ExtendedState.NOT_REGISTERED;
+          reloadTableDocs(extState);
         });
         btnInAction.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.IN_ACTION);
+            extState = ExtendedState.IN_ACTION;
+            reloadTableDocs(extState);
         });
         btnInControl.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.IS_CONTROL);
+            extState = ExtendedState.IS_CONTROL;
+            reloadTableDocs(extState);
         });
         btnAtManager.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.AT_MANAGER);
+            extState = ExtendedState.AT_MANAGER;
+            reloadTableDocs(extState);
         });
         btnInReview.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.IN_REVIEW);
+            extState = ExtendedState.IN_REVIEW;
+            reloadTableDocs(extState);
         });
         btnWriteOff.setOnAction(event -> {
-            reloadTableDocs(ExtendedState.WORK_OFF);
+            extState = ExtendedState.WORK_OFF;
+            reloadTableDocs(extState);
         });
         
         mnuNewDocument.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/sedo/res/new.png"))));
@@ -183,7 +194,7 @@ public class MainController implements Initializable {
           registerNewDoc(Document.Type.IN);
         });
         
-        reloadTableDocs(ExtendedState.NOT_REGISTERED);
+        reloadTableDocs(extState);//TODO: make async load
     }
     
     private void reloadTableDocs(ExtendedState docExtState) {
@@ -240,11 +251,12 @@ public class MainController implements Initializable {
           //stage.setUserData(doc);
           stage.getIcons().add(new Image(getClass().getResourceAsStream("/sedo/res/" + (Document.Type.IN == doc.getType() ? "in" : "out") + ".png")));
           if(Document.Status.REGISTERED == doc.getStatus() || null != doc.getRegNumber())
-            stage.setTitle("№" + doc.getRegNumber() + " от " + (new SimpleDateFormat(_rb.getString("date_format"))).format(doc.getRegDate()) + " " + doc.getRegNumber().getName());
+            stage.setTitle("№" + doc.getRegNumber() + " от " + DateTimeFormatter.ofPattern(_rb.getString("date_format")).withZone(ZoneId.systemDefault()).format(doc.getRegDate()));
           else
             stage.setTitle(_rb.getString("unregistered_document"));
           stage.showAndWait();
           tvTable.getSelectionModel().clearSelection();
+          reloadTableDocs(extState);
         }
       }
     }
@@ -266,6 +278,7 @@ public class MainController implements Initializable {
         stage.getIcons().add(new Image(getClass().getResourceAsStream("/sedo/res/man.png")));
         stage.setTitle(_rb.getString("new_document"));
         stage.showAndWait();
+        reloadTableDocs(extState);
       } catch(IOException iex) {
         
       }

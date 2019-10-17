@@ -3,6 +3,8 @@ package sedo.fxml;
 import java.io.File;
 import java.net.URL;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -14,8 +16,10 @@ import javafx.scene.image.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 import sedo.db.entity.Document;
+import sedo.db.entity.lists.ICorrespondent;
 import sedo.db.entity.lists.Nomenclature;
 import sedo.db.testDB;
 
@@ -42,6 +46,14 @@ public class DocumentController implements Initializable {
   private TextArea taNote;
   @FXML
   private ListView<File> lvFiles;
+  @FXML
+  private TextField tfOutNum;
+  @FXML
+  private TextField tfOutDate;
+  @FXML
+  private ComboBox<ICorrespondent> cbTo;
+  @FXML
+  private ChoiceBox<Document.Delivery> cbDeliveredBy;
   
   @FXML
   private SplitPane sp1;
@@ -86,15 +98,15 @@ public class DocumentController implements Initializable {
       };
       return cell;
     });
+    tfOutNum.setText(doc.getOutNumber());
+    tfOutDate.setText(DateTimeFormatter.ofPattern(_rb.getString("date_format")).withZone(ZoneId.systemDefault()).format(doc.getOutDate()));
     Node nodeLeft = sp1.getItems().get(0);
     Node nodeRight = sp1.getItems().get(1);
-    if(Document.Type.OUT == doc.getType()) {
-      sp1.getItems().set(0, nodeRight);
-      sp1.getItems().set(1, nodeLeft);
-    }
-    cbRegNumber.setOnAction(this::onRegNumber);
-    cbRegNumber.setItems(testDB.getNomenclatures());
+    
+    cbRegNumber.setOnAction(this::onRegNumberChanged);
+    cbRegNumber.setItems(testDB.getNomenclatures(doc.getType()));
     cbAccess.setItems(FXCollections.observableArrayList(Document.Access.values()));
+    cbDeliveredBy.setItems(FXCollections.observableArrayList(Document.Delivery.values()));
     apRight2.minWidthProperty().bind(sp2.widthProperty().multiply(0.3));
     apRight2.maxWidthProperty().bind(sp2.widthProperty().multiply(0.3));
     gpFrom.minWidthProperty().bind(sp1.widthProperty().multiply(0.5));
@@ -121,9 +133,22 @@ public class DocumentController implements Initializable {
       return lc;
     });
     
-    if(Document.Status.REGISTERED == doc.getStatus() || null != doc.getRegNumber()) {
+    if(Document.Type.IN == doc.getType()) {
+      sp1.getItems().set(0, nodeRight);
+      sp1.getItems().set(1, nodeLeft);
+      if(null != cbTo.getValue())
+        cbTo.setDisable(true);
+      if(!tfOutNum.getText().isEmpty())
+        tfOutNum.setDisable(true);
+      if(!tfOutDate.getText().isEmpty())
+        tfOutDate.setDisable(true);
+      if(null != cbDeliveredBy.getValue())
+        cbDeliveredBy.setDisable(true);
+    }
+    
+    if(Document.Status.REGISTERED.equals(doc.getStatus()) || null != doc.getRegNumber()) {
       canEdit = false;
-      cbRegNumber.setValue(doc.getRegNumber());
+      cbRegNumber.setValue(new Nomenclature("", doc.getRegNumber(), doc.getType()));
       dpRegDate.setValue(doc.getRegDate().atZone(ZoneId.systemDefault()).toLocalDate());
     } else {
       canEdit = true;
@@ -139,10 +164,43 @@ public class DocumentController implements Initializable {
     cbAccess.setDisable(!canEdit);
     lvFiles.setDisable(!canEdit);
     cbRegNumber.setDisable(!canEdit);
+    
+    System.out.println(doc.toString());
   }
   
   @FXML
-  private void onRegNumber(ActionEvent event) {
+  private void onRegNumberChanged(ActionEvent event) {
     System.out.println("DEBUG: NOMENCLATURE CHANGE");
+  }
+  
+  @FXML
+  private void onSave(ActionEvent event) {
+    //TODO: check required fields
+    doc.setAccess(cbAccess.getValue());
+    doc.setContent(taContent.getText());
+    doc.setControl(null);
+    doc.setCorrespondent(null);
+    doc.setDelivered_by(null);
+    //doc.setFile(null);
+    doc.setNote(taNote.getText());
+    doc.setRegDate(dpRegDate.getValue().atStartOfDay(ZoneId.systemDefault()).toInstant());
+    Nomenclature nomenclature = cbRegNumber.getValue();
+    doc.setRegNumber(nomenclature.get());
+   if(Document.Type.IN.equals(doc.getType()))
+      doc.setStatus(Document.Status.AT_MANAGER);
+    else
+      doc.setStatus(Document.Status.REGISTERED);
+    //TODO: save doc into DB
+    ((Stage)btnSave.getScene().getWindow()).close();
+  }
+  
+  @FXML
+  private void onPrint(ActionEvent event) {
+    System.out.println("DEBUG: DOCUMENT PRINTED");
+  }
+  
+  @FXML
+  private void onSend(ActionEvent event) {
+    System.out.println("DEBUG: DOCUMENT SENDED");
   }
 }

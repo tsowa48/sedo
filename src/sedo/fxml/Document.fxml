@@ -12,6 +12,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -44,9 +45,9 @@
       </MenuBar>
       <ToolBar layoutX="21.0" layoutY="25.0" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="35.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
         <items>
-          <Button fx:id="btnSave" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" />
-            <Button fx:id="btnPrint" focusTraversable="false" mnemonicParsing="false" />
-            <Button fx:id="btnSend" focusTraversable="false" mnemonicParsing="false" />
+          <Button fx:id="btnSave" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onSave" />
+            <Button fx:id="btnPrint" focusTraversable="false" mnemonicParsing="false" onAction="#onPrint" />
+            <Button fx:id="btnSend" focusTraversable="false" mnemonicParsing="false" onAction="#onSend" />
         </items>
       </ToolBar>
       <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="60.0">
@@ -58,7 +59,7 @@
                         <Insets left="5.0" right="2.0" />
                      </HBox.margin>
                   </Label>
-                  <ComboBox fx:id="cbRegNumber" onAction="#onRegNumber" prefWidth="120.0" />
+                  <ComboBox fx:id="cbRegNumber" onAction="#onRegNumberChanged" prefWidth="120.0" />
                   <Label prefHeight="25.0" text="От:">
                      <HBox.margin>
                         <Insets left="5.0" right="2.0" />
@@ -80,8 +81,8 @@
               <items>
                   <GridPane fx:id="gpFrom">
                     <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="156.0" minWidth="10.0" prefWidth="83.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="309.0" minWidth="10.0" prefWidth="309.0" />
                     </columnConstraints>
                     <rowConstraints>
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -89,24 +90,68 @@
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
                      <children>
-                        <Label text="TODO: from" GridPane.rowIndex="1" />
+                        <Label fx:id="lblFrom" text="Подписал:" />
+                        <Label text="Исполнитель:" GridPane.rowIndex="1" />
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+                           <children>
+                              <ComboBox fx:id="cbFrom" editable="true" layoutX="33.0" layoutY="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children>
+                              <ComboBox fx:id="cbExecutor" disable="true" editable="true" layoutX="-10.0" layoutY="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
                      </children>
+                     <padding>
+                        <Insets left="2.0" right="2.0" />
+                     </padding>
                   </GridPane>
                   <GridPane fx:id="gpTo">
                     <columnConstraints>
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="175.0" minWidth="10.0" prefWidth="67.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="338.0" minWidth="10.0" prefWidth="325.0" />
                     </columnConstraints>
                     <rowConstraints>
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                     </rowConstraints>
+                     <padding>
+                        <Insets left="2.0" right="2.0" />
+                     </padding>
                      <children>
-                        <Label text="TODO: to" GridPane.rowIndex="1" />
+                        <Label fx:id="lblTo" focusTraversable="false" text="Адресат:" />
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+                           <children>
+                              <ComboBox fx:id="cbTo" editable="true" layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                           <children>
+                              <TextField fx:id="tfOutNum" editable="false" focusTraversable="false" layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                           <children>
+                              <TextField fx:id="tfOutDate" editable="false" focusTraversable="false" layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                        <Label focusTraversable="false" text="Рег. №:" GridPane.rowIndex="1" />
+                        <Label focusTraversable="false" text="Дата:" GridPane.rowIndex="2" />
+                        <Label text="Доставка:" GridPane.rowIndex="3" />
+                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                           <children>
+                              <ChoiceBox fx:id="cbDeliveredBy" layoutX="14.0" layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
                      </children>
                   </GridPane>
               </items>
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
             </SplitPane>
             <SplitPane fx:id="sp2" dividerPositions="0.7" focusTraversable="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="250.0">
               <items>
@@ -126,6 +171,9 @@
                         <Label text="Примечание:" GridPane.rowIndex="2" />
                         <TextArea fx:id="taNote" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                      </children>
+                     <padding>
+                        <Insets left="2.0" />
+                     </padding>
                   </GridPane>
                 <AnchorPane fx:id="apRight2" SplitPane.resizableWithParent="false">
                      <children>
@@ -140,9 +188,12 @@
             </SplitPane>
             <Pane prefHeight="150.0">
                <children>
-                  <Label layoutX="350.0" layoutY="54.0" text="TODO: Поручение" />
+                  <Label fx:id="todo" layoutY="6.0" text="TODO: Поручение" wrapText="true" />
                </children></Pane>
          </children>
+         <opaqueInsets>
+            <Insets />
+         </opaqueInsets>
       </VBox>
    </children>
 </AnchorPane>
